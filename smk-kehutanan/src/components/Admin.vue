@@ -1,0 +1,342 @@
+<template>
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div class="w-full max-w-3xl bg-white p-8 rounded-xl shadow-lg relative">
+      <button @click="handleLogout" class="absolute top-4 right-4 text-sm text-gray-500 hover:text-red-600 hover:underline transition-colors">Logout</button>
+      
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-green-800">Admin Panel</h1>
+        <p class="text-gray-600">Manajemen Konten Website</p>
+      </div>
+
+      <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-6" aria-label="Tabs">
+          <button @click="activeTab = 'berita'" :class="['tab-button', { 'tab-active': activeTab === 'berita' }]">
+            Kelola Berita
+          </button>
+          <button @click="activeTab = 'galeri'" :class="['tab-button', { 'tab-active': activeTab === 'galeri' }]">
+            Kelola Galeri
+          </button>
+          <button @click="activeTab = 'guru'" :class="['tab-button', { 'tab-active': activeTab === 'guru' }]">
+            Kelola Guru
+          </button>
+        </nav>
+      </div>
+
+      <div v-if="activeTab === 'berita'">
+        <form @submit.prevent="handleSubmit('berita')" class="mb-12 p-4 border rounded-lg bg-gray-50">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ editMode ? 'Edit Berita' : 'Tambah Berita Baru' }}</h2>
+          <div class="mb-4">
+            <label for="beritaJudul" class="form-label">Judul Berita</label>
+            <input type="text" v-model="berita.judul" id="beritaJudul" class="form-input" required>
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Isi Berita</label>
+            <editor
+              api-key="0vnn6hz1gw2m01vdpnvaerc6ouzicgi0sgdcgfmba4ye24vd"
+              v-model="berita.isi"
+              :init="{
+                height: 300,
+                menubar: false,
+                plugins: ['lists link image paste help wordcount'],
+                toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist outdent indent | removeformat | help'
+              }"
+            />
+          </div>
+          <div class="mb-4">
+            <label for="beritaFile" class="form-label">Gambar Utama (Kosongkan jika tidak ingin mengubah)</label>
+            <input type="file" @change="handleFileChange($event, 'berita')" id="beritaFile" class="form-file-input">
+          </div>
+          <div class="flex space-x-3">
+            <button type="submit" :disabled="loading" class="form-button flex-grow">
+              {{ loading ? 'Menyimpan...' : (editMode ? 'Simpan Perubahan' : 'Terbitkan Berita') }}
+            </button>
+            <button v-if="editMode" @click="cancelEdit" type="button" class="cancel-button">Batal</button>
+          </div>
+        </form>
+        
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Daftar Berita Terbit</h2>
+        <div v-if="loadingBerita" class="text-center">Memuat daftar berita...</div>
+        <div v-else class="space-y-4 max-h-96 overflow-y-auto pr-2">
+           <div v-for="item in daftarBerita" :key="item.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div class="flex items-center min-w-0">
+                <img :src="item.imageUrl" :alt="item.judul" class="w-16 h-12 object-cover rounded mr-4 flex-shrink-0">
+                <p class="font-semibold text-gray-800 truncate">{{ item.judul }}</p>
+              </div>
+              <div class="flex space-x-3 flex-shrink-0 ml-4">
+                <button @click="startEdit(item, 'berita')" class="text-sm text-blue-600 hover:underline">Edit</button>
+                <button @click="handleDelete('berita', item.id)" class="text-sm text-red-600 hover:underline">Hapus</button>
+              </div>
+            </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'galeri'">
+        <form @submit.prevent="handleSubmit('galeri')" class="mb-12 p-4 border rounded-lg bg-gray-50">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ editMode ? 'Edit Item Galeri' : 'Unggah Gambar Baru' }}</h2>
+          <div class="mb-4">
+            <label for="galeriTitle" class="form-label">Judul Gambar</label>
+            <input type="text" v-model="galeri.title" id="galeriTitle" class="form-input" required>
+          </div>
+          <div class="mb-4">
+            <label for="galeriFile" class="form-label">Pilih Gambar (Kosongkan jika tidak ingin mengubah)</label>
+            <input type="file" @change="handleFileChange($event, 'galeri')" id="galeriFile" class="form-file-input">
+          </div>
+          <div class="flex space-x-3">
+            <button type="submit" :disabled="loading" class="form-button flex-grow">
+              {{ loading ? 'Menyimpan...' : (editMode ? 'Simpan Perubahan' : 'Unggah ke Galeri') }}
+            </button>
+            <button v-if="editMode" @click="cancelEdit" type="button" class="cancel-button">Batal</button>
+          </div>
+        </form>
+
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Galeri Saat Ini</h2>
+        <div v-if="loadingGaleri" class="text-center">Memuat galeri...</div>
+        <div v-else class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-96 overflow-y-auto pr-2">
+          <div v-for="item in daftarGaleri" :key="item.id" class="relative group">
+            <img :src="item.imageUrl" :alt="item.title" class="w-full h-32 object-cover rounded-lg">
+            <div class="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+              <p class="text-white text-center text-sm mb-2 px-1">{{ item.title }}</p>
+              <div class="flex space-x-3">
+                <button @click="startEdit(item, 'galeri')" class="text-xs text-white bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded">Edit</button>
+                <button @click="handleDelete('galeri', item.id)" class="text-xs text-white bg-red-600 hover:bg-red-700 px-2 py-1 rounded">Hapus</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'guru'">
+        <form @submit.prevent="handleSubmit('guru')" class="mb-12 p-4 border rounded-lg bg-gray-50">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">{{ editMode ? 'Edit Data Guru' : 'Tambah Data Guru Baru' }}</h2>
+          <div class="mb-4">
+            <label for="guruNama" class="form-label">Nama Lengkap & Gelar</label>
+            <input type="text" v-model="guru.nama" id="guruNama" class="form-input" required>
+          </div>
+          <div class="mb-4">
+            <label for="guruJabatan" class="form-label">Jabatan / Bidang</label>
+            <input type="text" v-model="guru.jabatan" id="guruJabatan" class="form-input" required>
+          </div>
+          <div class="mb-4">
+            <label for="guruFile" class="form-label">Pilih Foto (Kosongkan jika tidak ingin mengubah)</label>
+            <input type="file" @change="handleFileChange($event, 'guru')" id="guruFile" class="form-file-input">
+          </div>
+          <div class="flex space-x-3">
+            <button type="submit" :disabled="loading" class="form-button flex-grow">
+              {{ loading ? 'Menyimpan...' : (editMode ? 'Simpan Perubahan' : 'Tambah Guru') }}
+            </button>
+            <button v-if="editMode" @click="cancelEdit" type="button" class="cancel-button">Batal</button>
+          </div>
+        </form>
+        
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Daftar Guru Saat Ini</h2>
+        <div v-if="loadingGuru" class="text-center">Memuat daftar guru...</div>
+        <div v-else class="space-y-4 max-h-96 overflow-y-auto pr-2">
+          <div v-for="guruData in daftarGuru" :key="guruData.id" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg shadow-sm">
+            <div class="flex items-center min-w-0">
+              <img :src="guruData.fotoUrl" :alt="guruData.nama" class="w-12 h-12 rounded-full object-cover mr-4 flex-shrink-0">
+              <div class="min-w-0">
+                <p class="font-semibold text-gray-800 truncate">{{ guruData.nama }}</p>
+                <p class="text-sm text-gray-600 truncate">{{ guruData.jabatan }}</p>
+              </div>
+            </div>
+            <div class="flex space-x-3 flex-shrink-0 ml-4">
+              <button @click="startEdit(guruData, 'guru')" class="text-sm text-blue-600 hover:underline">Edit</button>
+              <button @click="handleDelete('guru', guruData.id)" class="text-sm text-red-600 hover:underline">Hapus</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p v-if="statusMessage" class="mt-4 text-center text-sm" :class="isError ? 'text-red-600' : 'text-green-600'">{{ statusMessage }}</p>
+      <div class="text-center mt-6">
+        <router-link to="/" class="text-sm text-green-600 hover:underline">← Kembali ke Website Utama</router-link>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch } from 'vue';
+import { collection, addDoc, getDocs, orderBy, query, deleteDoc, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
+import { useRouter } from 'vue-router';
+import { getAuth, signOut } from 'firebase/auth';
+import Editor from '@tinymce/tinymce-vue';
+
+// --- KONFIGURASI ---
+const CLOUDINARY_CLOUD_NAME = "dnx2ak3mq";
+const CLOUDINARY_UPLOAD_PRESET = "ml_default";
+
+// --- STATE MANAGEMENT ---
+const router = useRouter();
+const activeTab = ref('berita');
+const loading = ref(false);
+const statusMessage = ref('');
+const isError = ref(false);
+
+const berita = ref({ judul: '', isi: '', file: null });
+const galeri = ref({ title: '', file: null });
+const guru = ref({ nama: '', jabatan: '', file: null });
+
+const daftarBerita = ref([]);
+const loadingBerita = ref(false);
+const daftarGaleri = ref([]);
+const loadingGaleri = ref(false);
+const daftarGuru = ref([]);
+const loadingGuru = ref(false);
+
+const editMode = ref(false);
+const editingId = ref(null);
+
+// --- FUNGSI-FUNGSI UTAMA ---
+const handleLogout = async () => {
+  const auth = getAuth();
+  try {
+    await signOut(auth);
+    router.push('/login');
+  } catch (error) {
+    console.error("Gagal logout:", error);
+  }
+};
+
+const fetchData = async (type) => {
+  const stateMap = {
+    berita: { loading: loadingBerita, list: daftarBerita, orderByField: 'createdAt', orderDirection: 'desc' },
+    galeri: { loading: loadingGaleri, list: daftarGaleri, orderByField: 'createdAt', orderDirection: 'desc' },
+    guru: { loading: loadingGuru, list: daftarGuru, orderByField: 'createdAt', orderDirection: 'asc' },
+  };
+
+  const { loading, list, orderByField, orderDirection } = stateMap[type];
+  loading.value = true;
+  try {
+    const q = query(collection(db, type), orderBy(orderByField, orderDirection));
+    const querySnapshot = await getDocs(q);
+    list.value = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.error(`Gagal mengambil data ${type}:`, error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const startEdit = (data, type) => {
+  editMode.value = true;
+  editingId.value = data.id;
+  if (type === 'guru') guru.value = { nama: data.nama, jabatan: data.jabatan, file: null };
+  if (type === 'galeri') galeri.value = { title: data.title, file: null };
+  if (type === 'berita') berita.value = { judul: data.judul, isi: data.isi, file: null };
+  window.scrollTo(0, 0);
+};
+
+const cancelEdit = () => {
+  editMode.value = false;
+  editingId.value = null;
+  berita.value = { judul: '', isi: '', file: null };
+  guru.value = { nama: '', jabatan: '', file: null };
+  galeri.value = { title: '', file: null };
+  ['beritaFile', 'galeriFile', 'guruFile'].forEach(id => {
+    const input = document.getElementById(id);
+    if (input) input.value = null;
+  });
+};
+
+const handleFileChange = (event, type) => {
+  const file = event.target.files[0];
+  if (type === 'berita') berita.value.file = file;
+  if (type === 'galeri') galeri.value.file = file;
+  if (type === 'guru') guru.value.file = file;
+};
+
+const handleDelete = async (type, id) => {
+  if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
+  try {
+    await deleteDoc(doc(db, type, id));
+    statusMessage.value = '✅ Data berhasil dihapus.';
+    isError.value = false;
+    fetchData(type);
+  } catch (error) {
+    statusMessage.value = `❌ Gagal menghapus data: ${error.message}`;
+    isError.value = true;
+  }
+};
+
+const uploadToCloudinary = async (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error.message);
+  return data.secure_url;
+};
+
+const handleSubmit = async (type) => {
+  loading.value = true;
+  statusMessage.value = 'Memproses...';
+  isError.value = false;
+
+  try {
+    const isEditing = editMode.value;
+    let currentData, dataToSubmit;
+    
+    switch (type) {
+      case 'berita':
+        currentData = berita.value;
+        dataToSubmit = { judul: currentData.judul, isi: currentData.isi };
+        break;
+      case 'galeri':
+        currentData = galeri.value;
+        dataToSubmit = { title: currentData.title };
+        break;
+      case 'guru':
+        currentData = guru.value;
+        dataToSubmit = { nama: currentData.nama, jabatan: currentData.jabatan };
+        break;
+    }
+
+    const docRef = isEditing ? doc(db, type, editingId.value) : collection(db, type);
+
+    if (currentData.file) {
+      const imageUrl = await uploadToCloudinary(currentData.file);
+      const imageUrlField = type === 'guru' ? 'fotoUrl' : 'imageUrl';
+      dataToSubmit[imageUrlField] = imageUrl;
+    } else if (!isEditing) {
+      throw new Error("File wajib diisi untuk data baru.");
+    }
+
+    if (isEditing) {
+      await updateDoc(docRef, dataToSubmit);
+      statusMessage.value = `✅ Data ${type} berhasil diperbarui.`;
+    } else {
+      dataToSubmit.createdAt = serverTimestamp();
+      await addDoc(docRef, dataToSubmit);
+      statusMessage.value = `✅ Data ${type} baru berhasil ditambahkan.`;
+    }
+
+    fetchData(type);
+    cancelEdit();
+    
+  } catch (error) {
+    statusMessage.value = `❌ Gagal: ${error.message}`;
+    isError.value = true;
+  } finally {
+    loading.value = false;
+  }
+};
+
+watch(activeTab, (newTab) => {
+  cancelEdit();
+  fetchData(newTab);
+}, { immediate: true });
+</script>
+
+<style scoped>
+.form-label { @apply block text-sm font-medium text-gray-700 mb-2; }
+.form-input { @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500; }
+.form-file-input { @apply w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-100 file:text-green-700 hover:file:bg-green-200; }
+.form-button { @apply bg-green-600 hover:bg-green-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors disabled:bg-gray-400; }
+.cancel-button { @apply bg-gray-500 hover:bg-gray-600 text-white py-3 px-6 rounded-lg font-semibold transition-colors; }
+.tab-button { @apply whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300; }
+.tab-active { @apply border-green-500 text-green-600; }
+</style>
