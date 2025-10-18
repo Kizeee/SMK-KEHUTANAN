@@ -11,7 +11,6 @@
 </template>
 
 <script setup>
-// Komponen section tidak lagi diimpor di sini
-import Navbar from './components/Navbar.vue';
-import Footer from './components/Footer.vue';
+import Navbar from "./components/Navbar.vue";
+import Footer from "./components/Footer.vue";
 </script>

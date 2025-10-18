@@ -1,4 +1,3 @@
-// src/firebaseAuth.js
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { ref } from "vue";
 

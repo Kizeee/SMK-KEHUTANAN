@@ -1,8 +1,6 @@
-// src/firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
-// Kredensial yang Anda salin dari Firebase console
 const firebaseConfig = {
   apiKey: "AIzaSyCHPds6MW2WQxy_uHrlxQcsT1hqixGYghQ",
   authDomain: "smk-kehutanan.firebaseapp.com",
@@ -13,9 +11,7 @@ const firebaseConfig = {
   measurementId: "G-G8FLGPELSL"
 };
 
-// Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inisialisasi Firestore dan ekspor
 export const db = getFirestore(app);
 const analytics = getAnalytics(app);
