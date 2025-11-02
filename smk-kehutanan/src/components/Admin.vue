@@ -75,7 +75,7 @@
           <div class="mb-4">
             <label class="form-label">Isi Berita</label>
             <editor
-              api-key="GANTI_DENGAN_API_KEY_TINYMCE_ANDA"
+              api-key="0vnn6hz1gw2m01vdpnvaerc6ouzicgi0sgdcgfmba4ye24vd"
               v-model="berita.isi"
               :init="{
                 height: 300, menubar: false,
