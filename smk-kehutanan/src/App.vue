@@ -2,7 +2,7 @@
   <div>
     <Navbar />
 
-    <main>
+    <main class="pt-20">
       <router-view />
     </main>
 

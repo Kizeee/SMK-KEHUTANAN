@@ -1,5 +1,5 @@
 <template>
-  <div class="py-20 bg-white">
+  <div class="pt-12 pb-32 bg-gray-50 min-h-screen">
     <div class="container mx-auto px-6">
       <div class="text-center mb-16">
         <h2 class="text-3xl md:text-4xl font-bold text-green-800 mb-4">Tenaga Pendidik</h2>

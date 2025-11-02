@@ -11,7 +11,7 @@
             />
             <img
               src="/bbksda.jpg"
-              alt="Logo SMK Kehutanan"
+              alt="Logo BBKSDA"
               class="h-12 w-12 mr-3"
             />
             <div>
@@ -27,18 +27,21 @@
             <a href="#tentang" class="nav-link">Tentang</a>
             <router-link to="/guru" class="nav-link">Guru</router-link>
             <a href="#program" class="nav-link">Program</a>
+            <router-link to="/sarana" class="nav-link">Sarana</router-link> 
             <a href="#fasilitas" class="nav-link">Fasilitas</a>
             <a href="#prestasi" class="nav-link">Prestasi</a>
-            <a href="#galeri" class="nav-link">Galeri</a>
+            <a href="#berita" class="nav-link">Berita</a>
             <a href="#kontak" class="nav-link">Kontak</a>
           </template>
           <template v-else>
             <router-link to="/" class="nav-link">Beranda</router-link>
+            <router-link to="/#tentang" class="nav-link">Tentang</router-link>
             <router-link to="/guru" class="nav-link">Guru</router-link>
             <router-link to="/#program" class="nav-link">Program</router-link>
-            <router-link to="/#fasilitas" class="nav-link"
-              >Fasilitas</router-link
-            >
+            <router-link to="/sarana" class="nav-link">Sarana</router-link>
+            <router-link to="/#fasilitas" class="nav-link">Fasilitas</router-link>
+            <router-link to="/#prestasi" class="nav-link">Prestasi</router-link>
+            <router-link to="/#berita" class="nav-link">Berita</router-link>
             <router-link to="/#kontak" class="nav-link">Kontak</router-link>
           </template>
         </div>
